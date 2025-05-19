@@ -25,7 +25,7 @@ public class FileController {
     public ResponseEntity<?> uploadFile(@RequestPart("file") MultipartFile file)  throws Exception{
         fileService.uploadFile(file);
         HashMap<String,Object> response = new HashMap<>();
-        response.put("message","SucessFul to create");
+        response.put("message","SucessFully to create");
         return AppResponse.successResponse(HttpStatus.OK,response);
     }
 
