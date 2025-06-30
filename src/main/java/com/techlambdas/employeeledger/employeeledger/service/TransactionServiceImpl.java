@@ -2,6 +2,7 @@ package com.techlambdas.employeeledger.employeeledger.service;
 
 import com.techlambdas.employeeledger.employeeledger.exception.UserNotFoundException;
 import com.techlambdas.employeeledger.employeeledger.mapper.TransactionMapper;
+import com.techlambdas.employeeledger.employeeledger.model.Employee;
 import com.techlambdas.employeeledger.employeeledger.model.Transaction;
 import com.techlambdas.employeeledger.employeeledger.repo.EmployeeRepo;
 import com.techlambdas.employeeledger.employeeledger.repo.TransactionCustomRepo;
@@ -65,6 +66,8 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionResponse saveTransactionDetails(TransactionRequest transactionRequest) {
 
+        Employee existEmployee = employeeRepo.findByEmployeeId(transactionRequest.getEmployeeId());
+
         if (transactionRequest.getAdvanceAmount() > 0) {
             transactionRequest.setAdvanceAmount(Math.abs(transactionRequest.getAdvanceAmount()));
             transactionRequest.setDepositAmount(0);
@@ -73,7 +76,7 @@ public class TransactionServiceImpl implements TransactionService {
             transactionRequest.setDepositAmount(Math.abs(transactionRequest.getDepositAmount()));
             transactionRequest.setAdvanceAmount(0);
         }
-        double workingDays = transactionRequest.getWorkingDays();
+        double workingDays = existEmployee.getWorkingDay();
         double rate = transactionRequest.getRate();
         double messBill = transactionRequest.getMessBill();
         double totalAmount = (workingDays * rate) - messBill + transactionRequest.getDepositAmount();
@@ -85,6 +88,9 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setTransactionDate(LocalDate.now());
         TransactionResponse transactionResponse=transactionMapper.toRespone(transaction);
         transactionResponse.setTotalAmount(totalAmount);
+
+        existEmployee.setWorkingDay(0);
+        employeeRepo.save(existEmployee);
         transactionRepo.save(transaction);
         return transactionResponse;
     }

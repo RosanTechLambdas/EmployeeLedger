@@ -1,4 +1,7 @@
 package com.techlambdas.employeeledger.employeeledger.constant;
 
-public class AttendenceStatus {
+public enum AttendanceStatus {
+    PRESENT,
+    ABSENT,
+    HALFDAYPRESENT,
 }

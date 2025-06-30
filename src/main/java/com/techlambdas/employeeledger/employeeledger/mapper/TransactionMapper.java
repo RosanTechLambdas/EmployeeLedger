@@ -16,13 +16,20 @@ public abstract class TransactionMapper {
     private EmployeeRepo employeeRepo;
 
     @Mapping(target = "employeeName", source = "employeeId", qualifiedByName = "EmployeeName" )
+    @Mapping(target = "workingDays" ,source = "employeeId", qualifiedByName ="WorkingDays")
    public abstract TransactionResponse toRespone(Transaction transaction);
+    @Mapping(target = "workingDays" ,source = "employeeId", qualifiedByName ="WorkingDays")
     public abstract Transaction toEntity(TransactionRequest transactionRequest);
     public abstract List<TransactionResponse> toListResponse(List<Transaction> transactions);
 
     @Named("EmployeeName")
     public String EmployeeToString(String employeeId){
         return employeeRepo.findByEmployeeId(employeeId).getEmployeeName();
+    }
+
+    @Named("WorkingDays")
+    public double EmployeeToInt(String employeeId){
+        return employeeRepo.findByEmployeeId(employeeId).getWorkingDay();
     }
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

@@ -1,6 +1,7 @@
 package com.techlambdas.employeeledger.employeeledger.service;
 
 import com.techlambdas.employeeledger.employeeledger.request.EmployeeRequest;
+import com.techlambdas.employeeledger.employeeledger.response.EmployeeFinancialReportResponse;
 import com.techlambdas.employeeledger.employeeledger.response.EmployeeResponse;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -9,13 +10,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 
 public interface EmployeeService {
     List<EmployeeResponse> getEmployee(String status,String employeeName, String mobileNo,String keyword);
 
-    EmployeeResponse saveEmployee(EmployeeRequest employeeRequest, MultipartFile image) throws IOException;
+    EmployeeResponse saveEmployee(EmployeeRequest employeeRequest);
 
     EmployeeResponse updateEmployee(EmployeeRequest employeeRequest, String employeeId) ;
 
@@ -42,5 +44,6 @@ public interface EmployeeService {
     List<?> getEmployeeTransactionDetails();
 
     List<?> EmployeeFinancialReportResponse();
-    
+
+    byte[] downloadMonthlyReport(LocalDate StartDate, LocalDate EndDate);
 }

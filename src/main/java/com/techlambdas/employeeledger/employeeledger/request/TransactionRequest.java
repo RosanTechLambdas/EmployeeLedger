@@ -7,7 +7,6 @@ import java.time.LocalDate;
 @Data
 public class TransactionRequest {
     private String employeeId;
-    private double workingDays;
     private double rate;
     private double messBill;
     private double accountPaidAmount;

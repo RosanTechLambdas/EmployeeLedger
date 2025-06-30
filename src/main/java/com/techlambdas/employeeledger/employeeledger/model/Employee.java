@@ -19,6 +19,7 @@ public class Employee {
     private String mobileNo;
     private EmployeeStatus status;
     private String Address;
+    private double workingDay;
     @CreatedDate
     private LocalDateTime createdDateTime;
     @CreatedBy

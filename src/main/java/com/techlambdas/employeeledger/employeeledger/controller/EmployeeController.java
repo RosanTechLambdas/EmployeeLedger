@@ -5,15 +5,14 @@ import com.techlambdas.employeeledger.employeeledger.response.AppResponse;
 import com.techlambdas.employeeledger.employeeledger.response.EmployeeResponse;
 import com.techlambdas.employeeledger.employeeledger.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.URLConnection;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,10 +44,9 @@ public class EmployeeController {
     }
 
     @PostMapping
-    public ResponseEntity<?> saveEmployee(@RequestPart("employee") EmployeeRequest employeeRequest,
-                                          @RequestPart("image") MultipartFile image) throws IOException {
+    public ResponseEntity<?> saveEmployee(@RequestBody EmployeeRequest employeeRequest) throws IOException {
         Map<String, Object> response = new HashMap<>();
-        response.put("employee", employeeService.saveEmployee(employeeRequest, image));
+        response.put("employee", employeeService.saveEmployee(employeeRequest));
         return AppResponse.successResponse(HttpStatus.CREATED, response);
 
     }
@@ -142,5 +140,17 @@ public class EmployeeController {
         Map<String,Object> response=new HashMap<>();
        response.put("employee",employeeService.EmployeeFinancialReportResponse());
        return AppResponse.successResponse(HttpStatus.OK,response);
+    }
+
+
+    @GetMapping("/downloadMonthlyReport")
+    public ResponseEntity<?> downloadMonthlyReport(@RequestParam() @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startingDate,
+                                                   @RequestParam() @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endingDate){
+        byte[]bytes=employeeService.downloadMonthlyReport(startingDate,endingDate);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.builder("attachment").filename("attendance_"+startingDate+" to "+endingDate+".pdf").build());
+
+        return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
     }
 }

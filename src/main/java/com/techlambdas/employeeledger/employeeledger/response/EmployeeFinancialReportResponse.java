@@ -10,7 +10,7 @@ public class EmployeeFinancialReportResponse {
     private String employeeName;
     private String employeeMobile;
     private Integer totalWorkingDays;
-    private Integer totalPaidAmount;
+    private Integer totalAmountPaid;
     private Integer totalBalanceAmount;
     private Integer totalMessBill;
     private Double averageRate;

@@ -2,6 +2,7 @@ package com.techlambdas.employeeledger.employeeledger.repo;
 
 import com.mongodb.BasicDBObject;
 import com.techlambdas.employeeledger.employeeledger.model.Employee;
+import com.techlambdas.employeeledger.employeeledger.model.Transaction;
 import com.techlambdas.employeeledger.employeeledger.response.EmployeeFinancialReportResponse;
 import com.techlambdas.employeeledger.employeeledger.response.EmployeeResponse;
 import com.techlambdas.employeeledger.employeeledger.response.MonthlyReport;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Repository;
 
 import org.springframework.data.mongodb.core.query.Query;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
@@ -96,6 +98,7 @@ public class EmployeeCustomRepoImpl implements EmployeeCustomRepo {
     @Override
     public List<?> getEmployeeFinancialReportResponse() {
 
+
         Aggregation aggregation = Aggregation.newAggregation(
                 Aggregation.lookup("transaction", "employeeId", "employeeId", "transactionData"),
                 Aggregation.unwind("transactionData"),
@@ -147,5 +150,61 @@ public class EmployeeCustomRepoImpl implements EmployeeCustomRepo {
 
             return results.getMappedResults();
         }
+
+    @Override
+    public List<EmployeeFinancialReportResponse> downloadMonthlyReport(LocalDate startingDate, LocalDate endingDate) {
+        int value=endingDate.getDayOfMonth()-startingDate.getDayOfMonth()+1;
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.lookup("transaction", "employeeId", "employeeId", "transactionData"),
+                Aggregation.unwind("transactionData"),
+                Aggregation.match(
+                        Criteria.where("transactionData.transactionDate")
+                                .gte(startingDate)
+                                .lte(endingDate)
+                ),
+                Aggregation.group("employeeId")
+                        .first("employeeId").as("employeeId")
+                        .first("employeeName").as("employeeName")
+                        .first("mobileNo").as("employeeMobile")
+                        .count().as("totalTransactions")
+                        .sum("transactionData.workingDays").as("totalWorkingDays")
+                        .sum("transactionData.accountPaidAmount").as("totalAmountPaidAccount")
+                        .avg("transactionData.rate").as("averageRate")
+                        .sum("transactionData.messBill").as("totalMessBill")
+                        .sum("transactionData.balanceAmount").as("totalBalanceAmount")
+                        .sum("transactionData.paidAmount").as("totalPaidAmount")
+                        .max("transactionData.transactionDate").as("latestMonth"),
+                context -> new Document("$replaceRoot",
+                        new Document("newRoot",
+                                new Document("employeeId", "$employeeId")
+                                        .append("employeeName", "$employeeName")
+                                        .append("employeeMobile", "$employeeMobile")
+                                        .append("totalBalanceAmount", "$totalBalanceAmount")
+                                        .append("totalMessBill", "$totalMessBill")
+                                        .append("totalWorkingDays", "$totalWorkingDays")
+                                        .append("totalAmountPaid", new Document("$add", Arrays.asList("$totalPaidAmount", "$totalAmountPaidAccount")))
+                                        .append("averageRate", "$averageRate")
+                                        .append("totalTransactions", "$totalTransactions")
+                                        .append("averageRate", "$averageRate")
+                                        .append("monthlyReport", Arrays.asList(
+                                                new Document()
+                                                        .append("startDate",startingDate)
+                                                        .append("endDate", endingDate)
+                                                        .append("PresentDays", "$totalWorkingDays")
+                                                        .append("absentDays", new Document("$subtract", Arrays.asList(value,"$totalWorkingDays")))
+
+                                        ))
+                        )
+                )
+        );
+
+        AggregationResults<EmployeeFinancialReportResponse> results = mongoTemplate.aggregate(
+                aggregation,
+                "employee",
+                EmployeeFinancialReportResponse.class
+        );
+
+        return results.getMappedResults();
     }
+}
 

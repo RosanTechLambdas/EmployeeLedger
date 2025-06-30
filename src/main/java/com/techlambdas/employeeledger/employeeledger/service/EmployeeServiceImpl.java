@@ -9,6 +9,7 @@ import com.techlambdas.employeeledger.employeeledger.model.Employee;
 import com.techlambdas.employeeledger.employeeledger.repo.EmployeeRepo;
 import com.techlambdas.employeeledger.employeeledger.repo.TransactionRepo;
 import com.techlambdas.employeeledger.employeeledger.request.EmployeeRequest;
+import com.techlambdas.employeeledger.employeeledger.response.EmployeeFinancialReportResponse;
 import com.techlambdas.employeeledger.employeeledger.response.EmployeeResponse;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -64,18 +65,18 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 
     @Override
-    public EmployeeResponse saveEmployee(EmployeeRequest employeeRequest, MultipartFile image) throws IOException {
-        String extension= FilenameUtils.getExtension(image.getOriginalFilename());
-        String fileName=FilenameUtils.removeExtension(image.getOriginalFilename());
-
-        String fullUrl=fileName+"_"+LocalDate.now()+"."+extension ;
-        Path path = Paths.get(System.getProperty("user.dir"), uploadDir, "employeeImage");
-        if(!(Files.exists(path))){
-            Files.createDirectories(path);
-        }
-
-        Path filePath = path.resolve(fullUrl);
-        image.transferTo(filePath.toFile());
+    public EmployeeResponse saveEmployee(EmployeeRequest employeeRequest){
+//        String extension= FilenameUtils.getExtension(image.getOriginalFilename());
+//        String fileName=FilenameUtils.removeExtension(image.getOriginalFilename());
+//
+//        String fullUrl=fileName+"_"+LocalDate.now()+"."+extension ;
+//        Path path = Paths.get(System.getProperty("user.dir"), uploadDir, "employeeImage");
+//        if(!(Files.exists(path))){
+//            Files.createDirectories(path);
+//        }
+//
+//        Path filePath = path.resolve(fullUrl);
+//        image.transferTo(filePath.toFile());
 
         Employee existEmployee=employeeRepo.findByMobileNo(employeeRequest.getMobileNo());
         if(existEmployee!=null)
@@ -84,7 +85,7 @@ public class EmployeeServiceImpl implements EmployeeService {
       }
         Employee employee=employeeMapper.toEntity(employeeRequest);
         employee.setEmployeeId(UUID.randomUUID().toString());
-        employee.setEmployeeProfile(fullUrl);
+//        employee.setEmployeeProfile(fullUrl);
 
         return employeeMapper.toResponse( employeeRepo.save(employee));
     }
@@ -266,4 +267,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employeeCustomRepo.getEmployeeFinancialReportResponse();
     }
 
+    @Override
+    public byte[] downloadMonthlyReport(LocalDate startingDate, LocalDate endingDate) {
+        return PdfGenerator.generateYearlyReportPdf(employeeCustomRepo.downloadMonthlyReport(startingDate,endingDate));
+    }
 }
